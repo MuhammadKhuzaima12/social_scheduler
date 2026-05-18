@@ -1,16 +1,38 @@
 "use client"
 
 import { useState } from "react"
+import axios from "axios"
 
 export default function CreatePost() {
   const [caption, setCaption] = useState("")
   const [date, setDate] = useState("")
-  const [image, setImage] = useState<File | null>(null)
+  const [imageUrl, setImageUrl] = useState("")
+  const [loading, setLoading] = useState(false)
 
-  const handleSubmit = (e:  React.SyntheticEvent) => {
+  const handleSubmit = async (e: React.SyntheticEvent) => {
     e.preventDefault()
-    console.log({ caption, date, image })
-    alert("Post Scheduled!")
+
+    if (!caption || !date || !imageUrl) {
+      alert("Please fill all fields")
+      return
+    }
+
+    try {
+      setLoading(true)
+      const response = await axios.post("/api/posts", {
+        caption,
+        imageUrl,
+        scheduledTime: date,
+      })
+      alert(response.data.message)
+      setCaption("")
+      setDate("")
+      setImageUrl("")
+    } catch (error) {
+      alert("Something went wrong")
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -19,8 +41,9 @@ export default function CreatePost() {
       <div className="flex flex-col gap-4">
 
         <div className="flex flex-col gap-1">
-          <label className="font-medium">Image</label>
-          <input type="file" accept="image/*" onChange={(e) => setImage(e.target.files?.[0] || null)}
+          <label className="font-medium">Image URL</label>
+          <input type="text" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)}
+            placeholder="Paste image URL here..."
             className="border border-gray-300 rounded p-2" />
         </div>
 
@@ -37,9 +60,9 @@ export default function CreatePost() {
             className="border border-gray-300 rounded p-2" />
         </div>
 
-        <button onClick={handleSubmit}
-          className="bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition">
-          Schedule Post
+        <button onClick={handleSubmit} disabled={loading}
+          className="bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition disabled:opacity-50">
+          {loading ? "Scheduling..." : "Schedule Post"}
         </button>
 
       </div>
