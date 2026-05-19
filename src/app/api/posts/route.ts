@@ -25,3 +25,16 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ message: "Something went wrong", error }, { status: 500 })
   }
 }
+
+export async function GET() {
+  try {
+    await connectDB()
+
+    const posts = await Post.find().sort({ createdAt: -1 })
+
+    return NextResponse.json({ posts }, { status: 200 })
+
+  } catch (error) {
+    return NextResponse.json({ message: "Something went wrong", error }, { status: 500 })
+  }
+}
