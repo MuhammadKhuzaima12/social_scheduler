@@ -38,3 +38,22 @@ export async function GET() {
     return NextResponse.json({ message: "Something went wrong", error }, { status: 500 })
   }
 }
+
+export async function DELETE(req: NextRequest) {
+  try {
+    await connectDB()
+
+    const { id } = await req.json()
+
+    if (!id) {
+      return NextResponse.json({ message: "Post ID is required" }, { status: 400 })
+    }
+
+    await Post.findByIdAndDelete(id)
+
+    return NextResponse.json({ message: "Post deleted successfully" }, { status: 200 })
+
+  } catch (error) {
+    return NextResponse.json({ message: "Something went wrong", error }, { status: 500 })
+  }
+}

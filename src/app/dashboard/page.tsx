@@ -28,7 +28,21 @@ export default function Dashboard() {
     }
 
     fetchPosts()
+
+    const interval = setInterval(fetchPosts, 30000)
+    return () => clearInterval(interval)
   }, [])
+
+  const deletePost = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this post?")) return
+
+    try {
+      await axios.delete("/api/posts", { data: { id } })
+      setPosts(posts.filter((post) => post._id !== id))
+    } catch (error) {
+      alert("Failed to delete post")
+    }
+  }
 
   if (loading) return <div className="p-8">Loading...</div>
 
@@ -50,6 +64,11 @@ export default function Dashboard() {
               <span className="inline-block mt-2 px-2 py-1 text-xs bg-yellow-100 text-yellow-700 rounded">
                 {post.status}
               </span>
+              <button
+                onClick={() => deletePost(post._id)}
+                className="mt-3 w-full py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600 transition">
+                Delete
+              </button>
             </div>
           ))}
         </div>
