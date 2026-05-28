@@ -1,9 +1,16 @@
 import { NextRequest, NextResponse } from "next/server"
+import { auth } from "@clerk/nextjs/server"
 import connectDB from "@/lib/mongodb"
 import Post from "@/models/Post"
 
 export async function POST(req: NextRequest) {
   try {
+    const { userId } = await auth()
+
+    if (!userId) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
+    }
+
     await connectDB()
 
     const body = await req.json()
@@ -14,6 +21,7 @@ export async function POST(req: NextRequest) {
     }
 
     const post = await Post.create({
+      userId,
       caption,
       imageUrl,
       scheduledTime,
@@ -28,9 +36,15 @@ export async function POST(req: NextRequest) {
 
 export async function GET() {
   try {
+    const { userId } = await auth()
+
+    if (!userId) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
+    }
+
     await connectDB()
 
-    const posts = await Post.find().sort({ createdAt: -1 })
+    const posts = await Post.find({ userId }).sort({ createdAt: -1 })
 
     return NextResponse.json({ posts }, { status: 200 })
 
@@ -41,6 +55,12 @@ export async function GET() {
 
 export async function DELETE(req: NextRequest) {
   try {
+    const { userId } = await auth()
+
+    if (!userId) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
+    }
+
     await connectDB()
 
     const { id } = await req.json()
@@ -49,7 +69,7 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ message: "Post ID is required" }, { status: 400 })
     }
 
-    await Post.findByIdAndDelete(id)
+    await Post.findOneAndDelete({ _id: id, userId })
 
     return NextResponse.json({ message: "Post deleted successfully" }, { status: 200 })
 
