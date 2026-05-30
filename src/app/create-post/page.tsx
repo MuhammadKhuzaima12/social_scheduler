@@ -2,12 +2,23 @@
 
 import { useState } from "react"
 import axios from "axios"
+import { useRouter } from "next/navigation"
 
 export default function CreatePost() {
   const [caption, setCaption] = useState("")
   const [date, setDate] = useState("")
   const [image, setImage] = useState<File | null>(null)
+  const [preview, setPreview] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const router = useRouter()
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null
+    setImage(file)
+    if (file) {
+      setPreview(URL.createObjectURL(file))
+    }
+  }
 
   const handleSubmit = async (e: React.SyntheticEvent) => {
     e.preventDefault()
@@ -20,23 +31,18 @@ export default function CreatePost() {
     try {
       setLoading(true)
 
-      // Step 1: Upload image to Cloudinary
       const formData = new FormData()
       formData.append("file", image)
       const uploadResponse = await axios.post("/api/upload", formData)
       const imageUrl = uploadResponse.data.url
 
-      // Step 2: Save post to MongoDB
-      const response = await axios.post("/api/posts", {
+      await axios.post("/api/posts", {
         caption,
         imageUrl,
         scheduledTime: date,
       })
 
-      alert(response.data.message)
-      setCaption("")
-      setDate("")
-      setImage(null)
+      router.push("/dashboard")
 
     } catch (error) {
       alert("Something went wrong")
@@ -46,35 +52,40 @@ export default function CreatePost() {
   }
 
   return (
-    <div className="p-8 max-w-lg mx-auto">
-      <h1 className="text-2xl font-bold mb-6">Create Post</h1>
-      <div className="flex flex-col gap-4">
+    <div className="min-h-screen bg-gray-50 p-8">
+      <div className="max-w-lg mx-auto bg-white rounded-xl shadow-sm border border-gray-100 p-8">
+        <h1 className="text-3xl font-bold text-gray-900 mb-8">Create Post</h1>
 
-        <div className="flex flex-col gap-1">
-          <label className="font-medium">Image</label>
-          <input type="file" accept="image/*"
-            onChange={(e) => setImage(e.target.files?.[0] || null)}
-            className="border border-gray-300 rounded p-2" />
+        <div className="flex flex-col gap-6">
+
+          <div className="flex flex-col gap-2">
+            <label className="font-medium text-gray-700">Image</label>
+            <input type="file" accept="image/*" onChange={handleImageChange}
+              className="border border-gray-300 rounded-lg p-2 text-sm" />
+            {preview && (
+              <img src={preview} alt="preview" className="w-full h-48 object-cover rounded-lg mt-2" />
+            )}
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <label className="font-medium text-gray-700">Caption</label>
+            <textarea value={caption} onChange={(e) => setCaption(e.target.value)} rows={4}
+              placeholder="Write your caption..."
+              className="border border-gray-300 rounded-lg p-3 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <label className="font-medium text-gray-700">Schedule Date & Time</label>
+            <input type="datetime-local" value={date} onChange={(e) => setDate(e.target.value)}
+              className="border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          </div>
+
+          <button onClick={handleSubmit} disabled={loading}
+            className="bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition font-medium disabled:opacity-50">
+            {loading ? "Uploading & Scheduling..." : "Schedule Post"}
+          </button>
+
         </div>
-
-        <div className="flex flex-col gap-1">
-          <label className="font-medium">Caption</label>
-          <textarea value={caption} onChange={(e) => setCaption(e.target.value)} rows={4}
-            placeholder="Write your caption..."
-            className="border border-gray-300 rounded p-2 resize-none" />
-        </div>
-
-        <div className="flex flex-col gap-1">
-          <label className="font-medium">Schedule Date & Time</label>
-          <input type="datetime-local" value={date} onChange={(e) => setDate(e.target.value)}
-            className="border border-gray-300 rounded p-2" />
-        </div>
-
-        <button onClick={handleSubmit} disabled={loading}
-          className="bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition disabled:opacity-50">
-          {loading ? "Uploading & Scheduling..." : "Schedule Post"}
-        </button>
-
       </div>
     </div>
   )
