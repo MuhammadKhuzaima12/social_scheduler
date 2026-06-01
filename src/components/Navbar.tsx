@@ -6,10 +6,11 @@ export default async function Navbar() {
   const { userId } = await auth()
 
   return (
-    <nav className="p-4 border-b border-gray-200 flex justify-between items-center">
+    <nav className="p-4 border-b border-gray-200 flex justify-between items-center bg-white">
       <div className="flex gap-4">
-        <Link href="/dashboard" className="font-medium hover:text-blue-600">Dashboard</Link>
-        <Link href="/create-post" className="font-medium hover:text-blue-600">Create Post</Link>
+        <Link href="/dashboard" className="font-medium hover:text-blue-600 transition">Dashboard</Link>
+        <Link href="/create-post" className="font-medium hover:text-blue-600 transition">Create Post</Link>
+        <Link href="/analytics" className="font-medium hover:text-blue-600 transition">Analytics</Link>
       </div>
 
       <div className="flex gap-3 items-center">
