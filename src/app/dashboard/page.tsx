@@ -76,7 +76,7 @@ export default function Dashboard() {
                 <div className="p-4">
                   <p className="text-gray-800 mb-3 line-clamp-2">{post.caption}</p>
                   <p className="text-sm text-gray-500 mb-3">
-                    📅 {new Date(post.scheduledTime).toLocaleString()}
+                    📅 {new Date(post.scheduledTime).toLocaleString("en-PK", { timeZone: "Asia/Karachi" })}
                   </p>
                   <div className="flex justify-between items-center">
                     <span className={`px-3 py-1 text-xs rounded-full font-medium ${
